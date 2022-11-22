@@ -1,10 +1,18 @@
 1 0 0 
 1 2 0 
 1 2 3 
-1 2 3 
 1 4 3 
-number of memory accesses = 5.000000
-number of times memory was full when page fault = 1.000000
-number of page faults = 4.000000
-percentage of page faults = 0.800000
-percentage of time memory was full = 0.200000
+1 4 5 
+1 4 3 
+1 4 2 
+3 4 2 
+1 4 2 
+5 4 2 
+5 4 2 
+3 4 2 
+6 4 2 
+number of memory accesses = 13.000000
+number of times memory was full when page fault = 9.000000
+number of page faults = 12.000000
+percentage of page faults = 0.923077
+percentage of time memory was full = 0.692308

@@ -32,61 +32,105 @@ struct entry page_table[21]; //The page table
 /* input: none */
 /* output: frame of page to be replaced */
 int nru() {
-    int lowestIndex = 0;
-    int class0[mem_size];
-    int class1[mem_size];
-    int class2[mem_size];
-    int class3[mem_size];
-    for (int i = 0; i < mem_size; i++) {
-        class0[i] = -1;
+    //TODO OPTIMIZE AND REDUCE CODE
+    int lowestPageNum = 0;
+    int lowestMemIndex = 0;
+
+//    int class0[21]; //EXCLUDING CLASS 0
+    int class1[21];
+    int class2[21];
+    int class3[21];
+
+    int memClass1[mem_size];
+    int memClass2[mem_size];
+    int memClass3[mem_size];
+
+    for (int i = 0; i < 21; i++) {
+//        class0[i] = -1;
         class1[i] = -1;
         class2[i] = -1;
         class3[i] = -1;
     }
-
-
     for (int i = 0; i < mem_size; i++) {
+        memClass1[i] = -1;
+        memClass2[i] = -1;
+        memClass3[i] = -1;
+    }
+
+
+    //CODE IN LONG FORM FOR READABILITY
+    for (int i = 1; i < 21; i++) {
         int R = page_table[i].R;
         int M = page_table[i].M;
 
         if (R == 1 && M == 1) {
             class3[i] = i;
-        } else if (R == 1 && M == 0) {
+        }
+        else if (R == 1 && M == 0) {
             class2[i] = i;
-        } else if (R == 0 && M == 1) {
+        }
+        else if (R == 0 && M == 1) {
             class1[i] = i;
-        } else if (R == 0 && M == 0) { //Long form code for readability
-            class0[i] = i;
         }
+//        else if (R == 0 && M == 0) { //Long form code for readability
+//            class0[i] = i;
+//        }
     }
-    for (int i = 0; i < mem_size; i++) {
-        if (class3[i] != -1) {
-            lowestIndex = class3[i];
-            break;
-        }
-    }
-    for (int i = 0; i < mem_size; i++) {
-        if (class2[i] != -1) {
-            lowestIndex = class2[i];
-            break;
-        }
-    }
-    for (int i = 0; i < mem_size; i++) {
-        if (class1[i] != -1) {
-            lowestIndex = class1[i];
-            break;
-        }
-    }
-    for (int i = 0; i < mem_size; i++) {
-        if (class0[i] != -1) {
-            lowestIndex = class0[i];
-            break;
-        }
-    }
-//    page_table[lowestIndex].R = 0;
-//    page_table[lowestIndex].M = 0;
 
-    return lowestIndex;
+        for (int i = 1; i < 21; i++) {
+            if (class3[i] != -1) {
+                for (int mI = 0; mI < mem_size; mI++) {
+                    if (class3[i] == mem[mI]) {
+                        memClass3[mI] = class3[i];
+                    }
+                }
+            }
+        }
+        for (int i = 1; i < 21; i++) {
+            if (class2[i] != -1) {
+                for (int mI = 0; mI < mem_size; mI++) {
+                    if (class2[i] == mem[mI]) {
+                        memClass2[mI] = class2[i];
+                    }
+                }
+            }
+        }
+        for (int i = 1; i < 21; i++) {
+            if (class1[i] != -1) {
+                for (int mI = 0; mI < mem_size; mI++) {
+                    if (class1[i] == mem[mI]) {
+                        memClass1[mI] = class1[i];
+                    }
+                }
+            }
+        }
+
+    for (int i = 0; i < mem_size; i++) {
+        if (memClass3[i] != -1) {
+            lowestMemIndex = i;
+            lowestPageNum = memClass3[i];
+            break;
+        }
+    }
+    for (int i = 0; i < mem_size; i++) {
+        if (memClass2[i] != -1) {
+            lowestMemIndex = i;
+            lowestPageNum = memClass2[i];
+            break;
+        }
+    }
+    for (int i = 0; i < mem_size; i++) {
+        if (memClass1[i] != -1) {
+            lowestMemIndex = i;
+            lowestPageNum = memClass1[i];
+            break;
+        }
+    }
+
+    page_table[lowestPageNum].R = 0;
+    page_table[lowestPageNum].M = 0;
+
+    return lowestMemIndex;
 }
 
 /* ************************************************************* */
@@ -97,15 +141,8 @@ int nru() {
 /* This function udpates info in the page table to reflect the page reference.
    This information will be used later for page replacement */
 void nru_pt_update(int page, int R, int M) {
-    int index = 0;
-    for (int i = 0; i < mem_size; i++) {
-        if (page == mem[i]){
-            index = i;
-            break;
-        }
-    }
-    page_table[index].R = R;
-    page_table[index].M = M;
+    page_table[page].R = R;
+    page_table[page].M = M;
 }
 /* ********************** aging replacement policy **************** */
 /* input: none */
@@ -302,6 +339,7 @@ int main(int argc, char * argv[])
                     frame = insert(current);
                     nru_pt_update(current, 1-type, type);
                 }
+                //TODO REMOVE
                 for (int i = 0; i< mem_size; i++) {
                     printf("Page: %d, R: %d, M: %d,\n", mem[i], page_table[i].R, page_table[i].M);
                 }
