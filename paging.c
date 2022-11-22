@@ -36,7 +36,7 @@ int nru() {
     int lowestPageNum = 0;
     int lowestMemIndex = 0;
 
-//    int class0[21]; //EXCLUDING CLASS 0
+    //Class 0 excluded as by skeleton design, NRU never called when class 0 exist.
     int class1[21];
     int class2[21];
     int class3[21];
@@ -45,8 +45,8 @@ int nru() {
     int memClass2[mem_size];
     int memClass3[mem_size];
 
+    //Initializing class arrays with -1 as default value
     for (int i = 0; i < 21; i++) {
-//        class0[i] = -1;
         class1[i] = -1;
         class2[i] = -1;
         class3[i] = -1;
@@ -59,6 +59,7 @@ int nru() {
 
 
     //CODE IN LONG FORM FOR READABILITY
+    //Placing pages into classes by their page frame number
     for (int i = 1; i < 21; i++) {
         int R = page_table[i].R;
         int M = page_table[i].M;
@@ -72,39 +73,37 @@ int nru() {
         else if (R == 0 && M == 1) {
             class1[i] = i;
         }
-//        else if (R == 0 && M == 0) { //Long form code for readability
-//            class0[i] = i;
-//        }
+    }
+    //loading memClasses: Necessary to have first in memory, not first by page number
+    for (int i = 1; i < 21; i++) {
+        if (class3[i] != -1) {
+            for (int mI = 0; mI < mem_size; mI++) {
+                if (class3[i] == mem[mI]) {
+                    memClass3[mI] = class3[i];
+                }
+            }
+        }
+    }
+    for (int i = 1; i < 21; i++) {
+        if (class2[i] != -1) {
+            for (int mI = 0; mI < mem_size; mI++) {
+                if (class2[i] == mem[mI]) {
+                    memClass2[mI] = class2[i];
+                }
+            }
+        }
+    }
+    for (int i = 1; i < 21; i++) {
+        if (class1[i] != -1) {
+            for (int mI = 0; mI < mem_size; mI++) {
+                if (class1[i] == mem[mI]) {
+                    memClass1[mI] = class1[i];
+                }
+            }
+        }
     }
 
-        for (int i = 1; i < 21; i++) {
-            if (class3[i] != -1) {
-                for (int mI = 0; mI < mem_size; mI++) {
-                    if (class3[i] == mem[mI]) {
-                        memClass3[mI] = class3[i];
-                    }
-                }
-            }
-        }
-        for (int i = 1; i < 21; i++) {
-            if (class2[i] != -1) {
-                for (int mI = 0; mI < mem_size; mI++) {
-                    if (class2[i] == mem[mI]) {
-                        memClass2[mI] = class2[i];
-                    }
-                }
-            }
-        }
-        for (int i = 1; i < 21; i++) {
-            if (class1[i] != -1) {
-                for (int mI = 0; mI < mem_size; mI++) {
-                    if (class1[i] == mem[mI]) {
-                        memClass1[mI] = class1[i];
-                    }
-                }
-            }
-        }
-
+    //selecting lowest class by Memory and by first in place
     for (int i = 0; i < mem_size; i++) {
         if (memClass3[i] != -1) {
             lowestMemIndex = i;
@@ -127,6 +126,7 @@ int nru() {
         }
     }
 
+    //resetting replaced value to not be caught by NRU again
     page_table[lowestPageNum].R = 0;
     page_table[lowestPageNum].M = 0;
 
