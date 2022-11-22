@@ -31,10 +31,32 @@ struct entry page_table[21]; //The page table
 /* ********************** NRU replacement policy ************* */
 /* input: none */
 /* output: frame of page to be replaced */
-int nru()
-{
+int nru() {
+    int lowestIndex = 0;
 
+    for (int i = 0; i < mem_size; i++) {
+        int R = page_table[i].R;
+        int M = page_table[i].M;
 
+        if (R == 0 && M == 0) { //Long form code for readability
+            lowestIndex = i;
+            break; //stop once reached first one
+        }
+        else if (R == 0 && M == 1) {
+            lowestIndex = i;
+            break;
+        }
+        else if (R == 1 && M == 0) {
+            lowestIndex = i;
+            break;
+        }
+        else {
+            lowestIndex = i;
+            break;
+        }
+    }
+
+    return mem[lowestIndex];
 }
 
 /* ************************************************************* */
@@ -44,10 +66,16 @@ int nru()
 /* output: NONE */
 /* This function udpates info in the page table to reflect the page reference.
    This information will be used later for page replacement */
-void nru_pt_update(int page, int R, int M)
-{
-
-
+void nru_pt_update(int page, int R, int M) {
+    int index = 0;
+    for (int i = 0; i < mem_size; i++) {
+        int pageNum = mem[i];
+        if (page == pageNum){
+            index = i;
+        }
+    }
+    page_table[index].R = R;
+    page_table[index].M = M;
 }
 /* ********************** aging replacement policy **************** */
 /* input: none */
