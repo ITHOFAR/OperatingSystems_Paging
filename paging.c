@@ -33,30 +33,60 @@ struct entry page_table[21]; //The page table
 /* output: frame of page to be replaced */
 int nru() {
     int lowestIndex = 0;
+    int class0[mem_size];
+    int class1[mem_size];
+    int class2[mem_size];
+    int class3[mem_size];
+    for (int i = 0; i < mem_size; i++) {
+        class0[i] = -1;
+        class1[i] = -1;
+        class2[i] = -1;
+        class3[i] = -1;
+    }
+
 
     for (int i = 0; i < mem_size; i++) {
         int R = page_table[i].R;
         int M = page_table[i].M;
 
-        if (R == 0 && M == 0) { //Long form code for readability
-            lowestIndex = i;
-            break; //stop once reached first one
+        if (R == 1 && M == 1) {
+            class3[i] = i;
+        } else if (R == 1 && M == 0) {
+            class2[i] = i;
+        } else if (R == 0 && M == 1) {
+            class1[i] = i;
+        } else if (R == 0 && M == 0) { //Long form code for readability
+            class0[i] = i;
         }
-        else if (R == 0 && M == 1) {
-            lowestIndex = i;
-            break;
-        }
-        else if (R == 1 && M == 0) {
-            lowestIndex = i;
-            break;
-        }
-        else {
-            lowestIndex = i;
+    }
+    for (int i = 0; i < mem_size; i++) {
+        if (class3[i] != -1) {
+            lowestIndex = class3[i];
             break;
         }
     }
+    for (int i = 0; i < mem_size; i++) {
+        if (class2[i] != -1) {
+            lowestIndex = class2[i];
+            break;
+        }
+    }
+    for (int i = 0; i < mem_size; i++) {
+        if (class1[i] != -1) {
+            lowestIndex = class1[i];
+            break;
+        }
+    }
+    for (int i = 0; i < mem_size; i++) {
+        if (class0[i] != -1) {
+            lowestIndex = class0[i];
+            break;
+        }
+    }
+//    page_table[lowestIndex].R = 0;
+//    page_table[lowestIndex].M = 0;
 
-    return mem[lowestIndex];
+    return lowestIndex;
 }
 
 /* ************************************************************* */
@@ -69,9 +99,9 @@ int nru() {
 void nru_pt_update(int page, int R, int M) {
     int index = 0;
     for (int i = 0; i < mem_size; i++) {
-        int pageNum = mem[i];
-        if (page == pageNum){
+        if (page == mem[i]){
             index = i;
+            break;
         }
     }
     page_table[index].R = R;
@@ -272,6 +302,10 @@ int main(int argc, char * argv[])
                     frame = insert(current);
                     nru_pt_update(current, 1-type, type);
                 }
+                for (int i = 0; i< mem_size; i++) {
+                    printf("Page: %d, R: %d, M: %d,\n", mem[i], page_table[i].R, page_table[i].M);
+                }
+                printf("\n");
                 break;
 
             case 1: //aging
