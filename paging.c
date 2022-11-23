@@ -147,21 +147,84 @@ void nru_pt_update(int page, int R, int M) {
 /* ********************** aging replacement policy **************** */
 /* input: none */
 /* output: frame of page to be replaced */
-int aging()
-{
+int aging() {
+    int lowestMemIndex = 0;
+    int lowestPageNumber = 0;
+    int currentLowestVal = 255;
+    for (int i = 0; i < mem_size; i++) { //this grabs lowest possible value, but not necessarily unique
+        for (int j = 1; j < 21; j++) {
+            if (j == mem[i]) {
+                if (page_table[j].counter < currentLowestVal) {
+                    currentLowestVal = page_table[j].counter;
+                    lowestMemIndex = i;
+                }
+            }
+        }
+    }
 
+    for (int i = 0; i < mem_size; i++) { //getting first matching low value
+        for (int j = 1; j < 21; j++) {
+            if (j == mem[i]) {
+                if (page_table[j].counter == currentLowestVal) {
+                    lowestPageNumber = j;
+                    lowestMemIndex = i;
+                    break;
+                }
+            }
+        }
+    }
+    //cleaning up removed Page from pageTable;
+    page_table[lowestPageNumber].R = 0;
+    page_table[lowestPageNumber].counter = 128;
 
+    return lowestMemIndex;
 }
 /* ************************************************************* */
 /* input: page number */
 /* output: NONE */
 /* This function udpates info in the page table to reflect the page reference.
    This information will be used later for page replacement */
-void aging_pt_update(int page)
-{
-
-
+void aging_pt_update(int page) {
+    for (int i = 1; i < 21; i++) {
+        for (int j = 0; j < mem_size; j++) {
+            if (mem[j] == i) { //CURRENTLY IN MEMORY
+                if (i == page) { //CURRENT PAGE
+                    page_table[i].R = 1;
+                    page_table[i].counter = page_table[i].counter >> 1;
+                    page_table[i].counter = page_table[i].counter + 128;
+                }
+                //REST OF PAGES
+                else {
+                    page_table[i].counter = page_table[i].counter >> 1;
+                    if (page_table[i].R == 1) { //adding R to front, if 0 do nothing
+                        page_table[i].counter = page_table[i].counter + 128;
+                    }
+                    page_table[i].R = 0; //CLEARING R BIT
+                }
+            }
+        }
+    }
 }
+/* **************** Methods for Testing Binary ***************** */
+/* ************************************************************* */
+void printBinary(unsigned char val) {
+    for (int bit = 8; bit; --bit) {  // count from 8 to 1
+        putchar(val & (1 << (bit - 1)) ? '1' : '0');
+    }
+}
+
+void printPageTableByMem(){
+    for (int i = 0; i < mem_size; i++) {
+        for (int j = 1; j < 21; j++) {
+            if (j == mem[i]) {
+                printf("Page: %d, R: %d, Counter: %d, Binary: ", j, page_table[j].R, page_table[j].counter);
+                printBinary(page_table[j].counter);
+                printf("\n");
+            }
+        }
+    }
+}
+
 /* **************** End of your code *************** */
 /* ************************************************************* */
 
@@ -339,14 +402,13 @@ int main(int argc, char * argv[])
                     frame = insert(current);
                     nru_pt_update(current, 1-type, type);
                 }
-                //TODO REMOVE
-                for (int i = 0; i< mem_size; i++) {
-                    printf("Page: %d, R: %d, M: %d,\n", mem[i], page_table[i].R, page_table[i].M);
-                }
-                printf("\n");
                 break;
 
             case 1: //aging
+                //TODO REMOVE POST TESTING
+                printf("PRE, CURRENT: %d \n", current);
+                printPageTableByMem();
+                printf("\n");
                 if(frame != -1) //The page is already in memory in page frame given
                     aging_pt_update(current);
                 else if( IsFull()) //page not in memory and memory is full
@@ -363,6 +425,10 @@ int main(int argc, char * argv[])
                     frame = insert(current);
                     aging_pt_update(current);
                 }
+                //TODO REMOVE POST TESTING
+                printf("POST\n");
+                printPageTableByMem();
+                printf("***************************************************************\n");
                 break;
 
             default: printf("Unknown policy ... Exiting\n");
